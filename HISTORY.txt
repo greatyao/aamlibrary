@@ -1,0 +1,12 @@
+HISTORY of the aamlibrary package
+---------------------------------
+
+2.0, Feb 2009
+Added parymid build and fit.
+Revisited the function of AlignTextures() and NormalizeTexture().
+Added the intialize shape before fitting which is proposed by Dr. Hu. 
+Revisited the gradient Jocobian matrix for the AAM_Basic.
+
+
+1.0, May 2008
+Initial release.

@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AAMLibrary", "AAMLibrary.vcproj", "{DCEE6E7C-5D7E-4144-9442-1A3D31871346}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aambuilding", "aambuilding.vcproj", "{F3C059E2-2B37-49BB-B5B0-78F4EC5664B1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DCEE6E7C-5D7E-4144-9442-1A3D31871346} = {DCEE6E7C-5D7E-4144-9442-1A3D31871346}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "aamfitting", "aamfitting.vcproj", "{9F5D12BD-6664-4282-8BD1-0DE5CC5AC5E7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DCEE6E7C-5D7E-4144-9442-1A3D31871346} = {DCEE6E7C-5D7E-4144-9442-1A3D31871346}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DCEE6E7C-5D7E-4144-9442-1A3D31871346}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DCEE6E7C-5D7E-4144-9442-1A3D31871346}.Debug|Win32.Build.0 = Debug|Win32
+		{DCEE6E7C-5D7E-4144-9442-1A3D31871346}.Release|Win32.ActiveCfg = Release|Win32
+		{DCEE6E7C-5D7E-4144-9442-1A3D31871346}.Release|Win32.Build.0 = Release|Win32
+		{F3C059E2-2B37-49BB-B5B0-78F4EC5664B1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F3C059E2-2B37-49BB-B5B0-78F4EC5664B1}.Debug|Win32.Build.0 = Debug|Win32
+		{F3C059E2-2B37-49BB-B5B0-78F4EC5664B1}.Release|Win32.ActiveCfg = Release|Win32
+		{F3C059E2-2B37-49BB-B5B0-78F4EC5664B1}.Release|Win32.Build.0 = Release|Win32
+		{9F5D12BD-6664-4282-8BD1-0DE5CC5AC5E7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9F5D12BD-6664-4282-8BD1-0DE5CC5AC5E7}.Debug|Win32.Build.0 = Debug|Win32
+		{9F5D12BD-6664-4282-8BD1-0DE5CC5AC5E7}.Release|Win32.ActiveCfg = Release|Win32
+		{9F5D12BD-6664-4282-8BD1-0DE5CC5AC5E7}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
