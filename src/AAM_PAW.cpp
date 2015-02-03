@@ -6,9 +6,12 @@
 
 #include <set>
 #include <cstdio>
-
 #include "AAM_PAW.h"
 #include "AAM_TDM.h"
+
+#if CV_MAJOR_VERSION > 1
+#include <opencv2/legacy/legacy.hpp>
+#endif
 
 #define BINLINEAR 1
 

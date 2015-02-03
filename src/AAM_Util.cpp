@@ -47,6 +47,8 @@ static int str_compare(const void *arg1, const void *arg2)
 }
 
 #ifdef WIN32
+#include <direct.h>
+#include <io.h>
 file_lists AAM_Common::ScanNSortDirectory(const std::string &path, const std::string &extension)
 {
     WIN32_FIND_DATA wfd;
@@ -89,6 +91,12 @@ file_lists AAM_Common::ScanNSortDirectory(const std::string &path, const std::st
     qsort((void *)&(vFilenames[0]), (size_t)nbFiles, sizeof(string), str_compare);
 
     return vFilenames;
+}
+
+int AAM_Common::MkDir(const char* dirname)
+{
+	if(access(dirname, 0))	return mkdir(dirname);
+	return 0;
 }
 
 #else
@@ -142,6 +150,13 @@ file_lists AAM_Common::ScanNSortDirectory(const std::string &path, const std::st
 	qsort((void*)&(allfiles[0]), size_t(num), sizeof(std::string), str_compare);
 	return allfiles;
 }
+
+int AAM_Common::MkDir(const char* dirname)
+{
+	if(access(dirname, 0))	return mkdir(dirname, 0777);
+	return 0;
+}
+
 #endif
 
 //============================================================================

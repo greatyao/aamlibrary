@@ -1,5 +1,8 @@
 HISTORY of the aamlibrary package
 ---------------------------------
+3.0, Feb 2009
+Adapted for opencv 2.x.
+Ported to linux.
 
 2.0, Feb 2009
 Added parymid build and fit.

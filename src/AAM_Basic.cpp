@@ -5,7 +5,6 @@
 ****************************************************************************/
 
 #include <ctime> 
-#include <direct.h>
 #include "AAM_Basic.h"
 
 //============================================================================
@@ -268,7 +267,7 @@ void AAM_Basic::Fit(const IplImage* image, AAM_Shape& Shape,
 			__cam.CalcShape(__s, __current_c_q);
 			Shape.Mat2Point(__s);
 			Draw(Drawimg, Shape, 2);
-			mkdir("result");
+			AAM_Common::MkDir("result");
 			char filename[100];
 			sprintf(filename, "result/Iter-%02d.jpg", iter);
 			cvSaveImage(filename, Drawimg);

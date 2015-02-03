@@ -52,6 +52,8 @@ public:
 	static void DrawAppearance(IplImage*image, const AAM_Shape& Shape,
 		const CvMat* t, const AAM_PAW& paw, const AAM_PAW& refpaw);
 
+	static int MkDir(const char* dirname);
+
 };
 
 //virtual class for Active Appearance Model

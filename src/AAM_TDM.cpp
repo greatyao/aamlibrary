@@ -6,9 +6,7 @@
 
 #include "AAM_TDM.h"
 #include "AAM_PAW.h"
-#include <direct.h>
-#include <io.h>
-
+#include "AAM_Util.h"
 
 //============================================================================
 AAM_TDM::AAM_TDM()
@@ -219,9 +217,9 @@ void AAM_TDM::ZeroMeanUnitLength(CvMat* Texture)
 void AAM_TDM::SaveSeriesTemplate(const CvMat* AllTextures, const AAM_PAW& m_warp)
 {
 	printf("Saving the face template image...\n");
-	if(access("registration", 0))	_mkdir("registration");
-	if(access("Modes", 0))	_mkdir("Modes");
-	if(access("Tri", 0))	_mkdir("Tri");
+	AAM_Common::MkDir("registration");
+	AAM_Common::MkDir("Modes");
+	AAM_Common::MkDir("Tri");
 	char filename[100];
 	
 	int i;
@@ -229,7 +227,7 @@ void AAM_TDM::SaveSeriesTemplate(const CvMat* AllTextures, const AAM_PAW& m_warp
 	{
 		CvMat oneTexture;
 		cvGetRow(AllTextures, &oneTexture, i);
-		sprintf(filename, "registration/%i.jpg", i);
+		sprintf(filename, "registration/%d.jpg", i);
 		m_warp.SaveWarpTextureToImage(filename, &oneTexture);
 	}
 	
@@ -238,7 +236,7 @@ void AAM_TDM::SaveSeriesTemplate(const CvMat* AllTextures, const AAM_PAW& m_warp
 		CvMat oneVar;
 		cvGetRow(__TextureEigenVectors, &oneVar, nmodes);
 	
-		sprintf(filename, "Modes/A%03i.jpg", nmodes+1);
+		sprintf(filename, "Modes/A%03d.jpg", nmodes+1);
 		m_warp.SaveWarpTextureToImage(filename, &oneVar);
 	}
 	

@@ -5,9 +5,9 @@
 ****************************************************************************/
 
 #include "AAM_IC.h"
-#include "AAM_basic.h"
+#include "AAM_Basic.h"
 #include "AAM_MovieAVI.h"
-#include "VJFaceDetect.h"
+#include "VJfacedetect.h"
 
 using namespace std;
 

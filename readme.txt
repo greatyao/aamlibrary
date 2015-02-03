@@ -1,6 +1,6 @@
 /****************************************************************************
 *                                 AAMLibrary                                *
-* Copyright (c) 2008 by Yao Wei, all rights reserved.                       *
+* Copyright (c) 2008-2015 by Yao Wei, all rights reserved.                       *
 * Contact:     	njustyw@gmail.com                                           *
 *                                                                           *
 ****************************************************************************/
@@ -11,12 +11,12 @@
 System Requirements
 ===================
 
-AAMLibrary is written to be platform independent. It has been tested on Windows XP.
-AAMLibrary makes use of the OpenCV library version 1.0 that can be downloaded from:
+AAMLibrary is written to be platform independent. It has been tested on Windows/Linux.
+AAMLibrary makes use of the OpenCV library version 1.0 (or later) that can be downloaded from:
 
                 http://sourceforge.net/projects/opencv
  
-In order to make it work, you must modify a bug in OpenCV and rebuild it:
+In order to make it work, you must modify a bug in OpenCV(1.0) and rebuild it:
 	-- cvBoundingRect() doesn't work fine. 
 	-- opencv/cv/src/cvshapedescr.cpp around line 1161 
 	-- replace CV_32SC1 to CV_32SC2 and CV_32FC1 to CV_32FC2.

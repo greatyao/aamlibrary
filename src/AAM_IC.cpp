@@ -4,7 +4,6 @@
 * Copyright (c) 2008-2009 by GreatYao, all rights reserved.
 ****************************************************************************/
 
-#include <direct.h>
 #include "AAM_IC.h"
 
 
@@ -307,7 +306,7 @@ void AAM_IC::Train(const file_lists& pts_files,
 	CalcTexGrad(__texture.GetMean(), dTx, dTy);
 	
 	// save gradient image
-	mkdir("Modes");
+	AAM_Common::MkDir("Modes");
 	__paw.SaveWarpTextureToImage("Modes/dTx.jpg", dTx);
 	__paw.SaveWarpTextureToImage("Modes/dTy.jpg", dTy);
 	
@@ -374,7 +373,7 @@ void AAM_IC::Fit(const IplImage* image, 		AAM_Shape& Shape,
 			else cvCopy(image, Drawimg);
 			Shape.Mat2Point(__current_s);
 			Draw(Drawimg, Shape, 2);
-			mkdir("result");
+			AAM_Common::MkDir("result");
 			char filename[100];
 			sprintf(filename, "result/Iter-%02d.jpg", iter);
 			cvSaveImage(filename, Drawimg);
