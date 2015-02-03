@@ -45,21 +45,19 @@ int main(int argc, char** argv)
 
 			IplImage* image = aviIn.ReadFrame(j);
 
-			
 			if(j == 0 || flag == false) 
 			{
 				flag = model.InitShapeFromDetBox(Shape, facedet, image);
-				if(flag == false)
-					continue;
+				if(flag == false) goto show;
 			}
 	
-			model.Fit(image, Shape, 30, false);
+			flag = model.Fit(image, Shape, 30, false);
 			if(image2 == 0) image2 = cvCreateImage(cvGetSize(image), image->depth, image->nChannels);
 			cvZero(image2);
 			model.Draw(image2, Shape, 2);
-
-			cvShowImage("Video", image);
 			cvShowImage("AAMFitting", image2);
+show:
+			cvShowImage("Video", image);
 			cvWaitKey(1);
 		}
 		cvReleaseImage(&image2);
