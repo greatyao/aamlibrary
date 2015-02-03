@@ -70,7 +70,7 @@ public:
 		const file_lists& img_files, double scale = 1.0) = 0;
 	
 	// Fit the image using aam 
-	virtual void Fit(const IplImage* image, AAM_Shape& Shape, 
+	virtual bool Fit(const IplImage* image, AAM_Shape& Shape, 
 		int max_iter = 30, bool showprocess = false) = 0;
 
 	// Set search parameters zero
@@ -104,7 +104,7 @@ public:
 		int type = TYPE_AAM_IC, int level = 1);
 
 	// Doing image alignment
-	void Fit(const IplImage* image, AAM_Shape& Shape, 
+	bool Fit(const IplImage* image, AAM_Shape& Shape, 
 		int max_iter = 30, bool showprocess = false);
 
 	// Build mapping relation between detect box and shape

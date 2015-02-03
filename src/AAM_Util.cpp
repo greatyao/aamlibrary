@@ -198,6 +198,7 @@ void AAM_Common::DrawAppearance(IplImage*image, const AAM_Shape& Shape,
 	byte* pimg;
 	double* fastt = t->data.db;
 	int nChannel = image->nChannels;
+	int nPoints = Shape.NPoints();
 	const AAM_Shape& refShape = refpaw.__referenceshape;
 	const std::vector<std::vector<int> >& tri = paw.__tri;
 	const std::vector<std::vector<int> >& rect1 = paw.__rect;
@@ -223,6 +224,9 @@ void AAM_Common::DrawAppearance(IplImage*image, const AAM_Shape& Shape,
 				v1 = tri[tri_idx][0];
 				v2 = tri[tri_idx][1];
 				v3 = tri[tri_idx][2];
+				
+				if(v1 < 0 || v2 < 0 || v3 < 0 || v1 >= nPoints || v2 >= nPoints || v3 >= nPoints)
+					continue;
 		
 				x2 = alpha[idx1]*refShape[v1].x + belta[idx1]*refShape[v2].x +  
 					gamma[idx1]*refShape[v3].x;
@@ -376,7 +380,7 @@ void AAM_Pyramid::Build(const file_lists& pts_files,
 }
 
 //============================================================================
-void AAM_Pyramid::Fit(const IplImage* image, 
+bool AAM_Pyramid::Fit(const IplImage* image, 
 					  AAM_Shape& Shape, 
 					  int max_iter /* = 30 */, 
 					  bool showprocess /* = false */)
@@ -384,6 +388,7 @@ void AAM_Pyramid::Fit(const IplImage* image,
 	// the images used during search
 	int w = image->width;
 	int h = image->height;
+	bool flag;
 	
 	double scale = __model[0]->GetReferenceShape().GetWidth() / Shape.GetWidth();
 	Shape *= scale;
@@ -403,9 +408,12 @@ void AAM_Pyramid::Fit(const IplImage* image,
 		IplImage* fitimage = 
 			cvCreateImage(cvSize(w0/PyrScale, h0/PyrScale), image->depth, image->nChannels);
 		cvResize(image, fitimage);
-	
-		__model[iLev]->Fit(fitimage, Shape, iter, showprocess);
+		
+		AAM_Shape shapeBackup = Shape;
+		flag = __model[iLev]->Fit(fitimage, Shape, iter, showprocess);
 		cvReleaseImage(&fitimage);
+
+		if(!flag) Shape = shapeBackup;
 		
 		if(iLev != 0)
 		{
@@ -414,6 +422,7 @@ void AAM_Pyramid::Fit(const IplImage* image,
 		}
 	}
 	Shape /= scale;
+	return flag;
 }
 
 

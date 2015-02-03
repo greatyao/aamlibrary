@@ -237,7 +237,7 @@ void AAM_Basic::InitParams(const IplImage* image)
 }
 
 //============================================================================
-void AAM_Basic::Fit(const IplImage* image, AAM_Shape& Shape, 
+bool AAM_Basic::Fit(const IplImage* image, AAM_Shape& Shape, 
 					int max_iter /* = 30 */,bool showprocess /* = false */)
 {
 	//intial some stuff
@@ -265,6 +265,7 @@ void AAM_Basic::Fit(const IplImage* image, AAM_Shape& Shape,
 			if(Drawimg == 0)	Drawimg = cvCloneImage(image);	
 			else cvCopy(image, Drawimg);
 			__cam.CalcShape(__s, __current_c_q);
+			AAM_Common::CheckShape(__s, image->width, image->height);
 			Shape.Mat2Point(__s);
 			Draw(Drawimg, Shape, 2);
 			AAM_Common::MkDir("result");
@@ -322,9 +323,13 @@ void AAM_Basic::Fit(const IplImage* image, AAM_Shape& Shape,
 
 	cvReleaseImage(&Drawimg);
 	__cam.CalcShape(__s, __current_c_q);
+	AAM_Common::CheckShape(__s, image->width, image->height);
 	Shape.Mat2Point(__s);
 	t = gettime - t;
-	printf("AAM-Basic Fitting time cost: %.3f millisec\n", t);
+	printf("AAM-Basic Fitting: time cost=%.3f millisec, measure=%.2f\n", t, e1);
+	
+	if(e1 >= 1.75) return false;
+	return true;
 }
 
 

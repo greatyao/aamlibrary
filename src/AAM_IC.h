@@ -36,7 +36,7 @@ public:
 		double texture_percentage = 0.975);
 
 	// Fit the image using Inverse Compositional. 
-	virtual void Fit(const IplImage* image, AAM_Shape& Shape, 
+	virtual bool Fit(const IplImage* image, AAM_Shape& Shape, 
 		int max_iter = 30, bool showprocess = false);
 
 	// Set all search parameters zero

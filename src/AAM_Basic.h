@@ -36,7 +36,7 @@ public:
 	{	Train(pts_files, img_files, scale);	}
 
 	// Fit the image using aam basic. 
-	virtual void Fit(const IplImage* image, AAM_Shape& Shape, 
+	virtual bool Fit(const IplImage* image, AAM_Shape& Shape, 
 		int max_iter = 30, bool showprocess = false);
 
 	// Virtual void SetAllParamsZero();

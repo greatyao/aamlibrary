@@ -353,7 +353,7 @@ void AAM_IC::Train(const file_lists& pts_files,
 }
 
 //============================================================================
-void AAM_IC::Fit(const IplImage* image, 		AAM_Shape& Shape, 
+bool AAM_IC::Fit(const IplImage* image, 		AAM_Shape& Shape, 
 				int max_iter /* = 30 */, 	bool showprocess /* = false */)
 {
 	//initialize some stuff
@@ -364,6 +364,7 @@ void AAM_IC::Fit(const IplImage* image, 		AAM_Shape& Shape,
 	SetAllParamsZero();
 	__shape.CalcParams(__current_s, __search_pq);
 	IplImage* Drawimg = 0;
+	double err1, err2;
 	
 	for(int iter = 0; iter < max_iter; iter++)
 	{
@@ -392,7 +393,7 @@ void AAM_IC::Fit(const IplImage* image, 		AAM_Shape& Shape,
 		cvGEMM(__error_t, __G, 1, NULL, 1, __delta_pq, CV_GEMM_B_T);
 		
 		//check for parameter convergence
-		if(cvNorm(__delta_pq) < 1e-6)	break;
+		if((err1=cvNorm(__delta_pq)) < 1e-6)	break;
 
 		//apply inverse compositional algorithm to update parameters
 		InverseCompose(__delta_pq, __current_s, __update_s);
@@ -405,16 +406,19 @@ void AAM_IC::Fit(const IplImage* image, 		AAM_Shape& Shape,
 		__shape.CalcShape(__search_pq, __update_s);
 		
 		//check for shape convergence
-		if(cvNorm(__current_s, __update_s, CV_L2) < 0.001)	break;
+		if((err2=cvNorm(__current_s, __update_s, CV_L2)) < 0.001)	break;
 		else cvCopy(__update_s, __current_s);	
 	}
-
+	
 	Shape.Mat2Point(__current_s);
 		
 	t = gettime-t;
-	printf("AAM IC Fitting time cost %.3f millisec\n", t);
+	printf("AAM-IC Fitting: time cost=%.3f millisec, measure=(%.2f, %.2f)\n", t, err1, err2);
 	
 	cvReleaseImage(&Drawimg);
+	
+	if(err1 >= 15 || err2 >= 3.75) return false;
+	return true;
 }
 
 //============================================================================
