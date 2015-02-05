@@ -491,87 +491,94 @@ void AAM_PAW::Write(std::ofstream& os)
 {
 	int i, j;
 	
-	os << __n << " " << __nTriangles << " " << __nPixels << " "
-		<< __xmin << " " << __ymin << " " << __width << " " << __height
-		<< std::endl;
+	os.write((char*)&__n, sizeof(int));
+	os.write((char*)&__nTriangles, sizeof(int));
+	os.write((char*)&__nPixels, sizeof(int));
+	os.write((char*)&__xmin, sizeof(int));
+	os.write((char*)&__ymin, sizeof(int));
+	os.write((char*)&__width, sizeof(int));
+	os.write((char*)&__height, sizeof(int));
 
 	for(i = 0; i < __nTriangles; i++)
-		os << __tri[i][0] << " " << __tri[i][1] << " " << __tri[i][2] << std::endl;
-	os << std::endl;
+	{
+		os.write((char*)&__tri[i][0], sizeof(int));
+		os.write((char*)&__tri[i][1], sizeof(int));
+		os.write((char*)&__tri[i][2], sizeof(int));
+	}
 	
 	for(i = 0; i < __vtri.size(); i++)
 	{
-		os << __vtri[i].size();
+		int ii = __vtri[i].size();
+		os.write((char*)&ii, sizeof(int));
 		for( j = 0; j < __vtri[i].size(); j++)
 		{
-			os << " " << __vtri[i][j];
+			os.write((char*)&__vtri[i][j], sizeof(int));
 		}
-		os << std::endl;
 	}
-	os << std::endl;
 
-	for(i = 0; i < __nPixels; i++)	os << __pixTri[i] << " ";
-	os << std::endl;
+	for(i = 0; i < __nPixels; i++)	os.write((char*)&__pixTri[i], sizeof(int));
+	
+	for(i = 0; i < __nPixels; i++)	os.write((char*)&__alpha[i], sizeof(double));
 
-	for(i = 0; i < __nPixels; i++)	os << __alpha[i] << " ";
-	os << std::endl;
+	for(i = 0; i < __nPixels; i++)	os.write((char*)&__belta[i], sizeof(double));
 
-	for(i = 0; i < __nPixels; i++)	os << __belta[i] << " ";
-	os << std::endl;
-
-	for(i = 0; i < __nPixels; i++)	os << __gamma[i] << " ";
-	os << std::endl;
+	for(i = 0; i < __nPixels; i++)	os.write((char*)&__gamma[i], sizeof(double));
 
 	for(i = 0; i < __height; i++)
 	{
 		for(j = 0; j < __width; j++)
-			os << __rect[i][j]<< " ";
-		os << std::endl;
+			os.write((char*)&__rect[i][j], sizeof(int));
 	}
-	os << std::endl;
 	
 	__referenceshape.Write(os);
-
-	os << std::endl;
 }
 
 void AAM_PAW::Read(std::ifstream& is)
 {
 	int i, j;
-	is >> __n >> __nTriangles >> __nPixels >> __xmin >> __ymin >> __width >> __height;
+	is.read((char*)&__n, sizeof(int));
+	is.read((char*)&__nTriangles, sizeof(int));
+	is.read((char*)&__nPixels, sizeof(int));
+	is.read((char*)&__xmin, sizeof(int));
+	is.read((char*)&__ymin, sizeof(int));
+	is.read((char*)&__width, sizeof(int));
+	is.read((char*)&__height, sizeof(int));
 	
 	__tri.resize(__nTriangles);
 	for(i = 0; i < __nTriangles; i++)
 	{
 		__tri[i].resize(3);
-		is >> __tri[i][0] >> __tri[i][1] >> __tri[i][2];
+		is.read((char*)&__tri[i][0], sizeof(int));
+		is.read((char*)&__tri[i][1], sizeof(int));
+		is.read((char*)&__tri[i][2], sizeof(int));
 	}
 
 	__vtri.resize(__n);
 	for(i = 0; i < __n; i++)
 	{
-		int ii; is >> ii;
+		int ii; 
+		is.read((char*)&ii, sizeof(int));
 		__vtri[i].resize(ii);
-		for( j = 0; j < ii; j++)	is >> __vtri[i][j];
+		for( j = 0; j < ii; j++)	is.read((char*)&__vtri[i][j], sizeof(int));
 	}
 
 	__pixTri.resize(__nPixels);
-	for(i = 0;  i < __nPixels; i++)	is >> __pixTri[i];
+	for(i = 0;  i < __nPixels; i++)	is.read((char*)&__pixTri[i], sizeof(int));
 	
 	__alpha.resize(__nPixels);
-	for(i = 0; i < __nPixels; i++)	is >> __alpha[i];
+	for(i = 0; i < __nPixels; i++)	is.read((char*)&__alpha[i], sizeof(double));
 
 	__belta.resize(__nPixels);
-	for(i = 0; i < __nPixels; i++)	is >> __belta[i];
+	for(i = 0; i < __nPixels; i++)	is.read((char*)&__belta[i], sizeof(double));
 	
 	__gamma.resize(__nPixels);
-	for(i = 0; i < __nPixels; i++)	is >> __gamma[i];
+	for(i = 0; i < __nPixels; i++)	is.read((char*)&__gamma[i], sizeof(double));
 	
 	__rect.resize(__height);
 	for(i = 0; i < __height; i++)
 	{
 		__rect[i].resize(__width);
-		for(j = 0; j < __width; j++) is >> __rect[i][j];
+		for(j = 0; j < __width; j++) is.read((char*)&__rect[i][j], sizeof(int));
 	}
 	
 	__referenceshape.resize(__n);

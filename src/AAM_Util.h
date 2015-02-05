@@ -29,9 +29,10 @@
 
 typedef std::vector<std::string> file_lists;
 
-std::ostream& operator<<(std::ostream &os, const CvMat* mat);
+void ReadCvMat(std::istream &is, CvMat* mat);
 
-std::istream& operator>>(std::istream &is, CvMat* mat);
+void WriteCvMat(std::ostream &os, const CvMat* mat);
+
 
 class AAM_PAW;
 

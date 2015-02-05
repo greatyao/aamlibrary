@@ -11,32 +11,19 @@
 using namespace std;
 
 //============================================================================
-std::ostream& operator<<(std::ostream &os, const CvMat* mat)
+void ReadCvMat(std::istream &is, CvMat* mat)
 {
 	assert(CV_MAT_TYPE(mat->type) == CV_64FC1);
-	for(int i = 0; i < mat->rows; i++)
-	{
-		for(int j = 0; j < mat->cols; j++)
-		{
-			os << CV_MAT_ELEM(*mat, double, i, j) << " ";
-		}
-		os << std::endl;
-	}
-	return os;
+	double* p = mat->data.db;
+	is.read((char*)p, mat->rows*mat->cols*sizeof(double));
 }
 
 //============================================================================
-std::istream& operator>>(std::istream &is, CvMat* mat)
+void WriteCvMat(std::ostream &os, const CvMat* mat)
 {
 	assert(CV_MAT_TYPE(mat->type) == CV_64FC1);
-	for(int i = 0; i < mat->rows; i++)
-	{
-		for(int j = 0; j < mat->cols; j++)
-		{
-			is >> CV_MAT_ELEM(*mat, double, i, j);
-		}
-	}
-	return is;
+	double* p = mat->data.db;
+	os.write((char*)p, mat->rows*mat->cols*sizeof(double));
 }
 
 //============================================================================
@@ -104,6 +91,7 @@ int AAM_Common::MkDir(const char* dirname)
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #define MAX_PATH 1024
 
@@ -447,14 +435,17 @@ void AAM_Pyramid::Draw(IplImage* image, const AAM_Shape& Shape, int type)
 //============================================================================
 void AAM_Pyramid::WriteModel(const std::string& filename)
 {
-	ofstream os(filename.c_str());
+	ofstream os(filename.c_str(), ios::out | ios::binary);
 	if(!os){
 		fprintf(stderr, "ERROR(%s, %d): CANNOT create model \"%s\"\n",
 			__FILE__, __LINE__, filename.c_str());
 		exit(0);
 	}
 
-	os << __model[0]->GetType() << " " << __model.size() << std::endl;
+	int level = __model.size();
+	int type = __model[0]->GetType();
+	os.write((char*)&type, sizeof(type));
+	os.write((char*)&level, sizeof(level));
 	
 	for(int i = 0; i < __model.size(); i++)
 	{
@@ -463,7 +454,7 @@ void AAM_Pyramid::WriteModel(const std::string& filename)
 	}
 	printf("Done\n");
 
-	os << __referenceWidth << std::endl;
+	os.write((char*)&__referenceWidth, sizeof(__referenceWidth));
 	__VJDetectShape.Write(os);
 	
 	os.close();
@@ -472,7 +463,7 @@ void AAM_Pyramid::WriteModel(const std::string& filename)
 //============================================================================
 void AAM_Pyramid::ReadModel(const std::string& filename)
 {
-	ifstream is(filename.c_str());
+	ifstream is(filename.c_str(), ios::in | ios::binary);
 	if(!is){
 		fprintf(stderr, "ERROR(%s, %d): CANNOT load model \"%s\"\n",
 			__FILE__, __LINE__, filename.c_str());
@@ -480,7 +471,8 @@ void AAM_Pyramid::ReadModel(const std::string& filename)
 	}
 
 	int level, type;
-	is >> type >> level;
+	is.read((char*)&type, sizeof(type));
+	is.read((char*)&level, sizeof(level));
 
 	for(int i = 0; i < level; i++)
 	{
@@ -495,7 +487,7 @@ void AAM_Pyramid::ReadModel(const std::string& filename)
 	}	
 	printf("Done\n");
 
-	is >> __referenceWidth;
+	is.read((char*)&__referenceWidth, sizeof(__referenceWidth));
 	__VJDetectShape.resize(GetMeanShape().NPoints());
 	__VJDetectShape.Read(is);
 	is.close();

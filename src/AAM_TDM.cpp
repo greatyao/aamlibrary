@@ -289,23 +289,29 @@ void AAM_TDM::SaveSeriesTemplate(const CvMat* AllTextures, const AAM_PAW& m_warp
 //============================================================================
 void AAM_TDM::Write(std::ofstream& os)
 {
-	os << nPixels() << " " << nModes() << std::endl;
-	os << __MeanTexture << std::endl;
-	os << __TextureEigenValues << std::endl;
-	os << __TextureEigenVectors << std::endl;
-	os << std::endl;
+	int _npixels = nPixels();
+	int _nModes = nModes();
+
+	os.write((char*)&_npixels, sizeof(int));
+	os.write((char*)&_nModes, sizeof(int));
+
+	WriteCvMat(os, __MeanTexture);
+	WriteCvMat(os, __TextureEigenValues);
+	WriteCvMat(os, __TextureEigenVectors);
 }
 
 //============================================================================
 void AAM_TDM::Read(std::ifstream& is)
-{	int _npixels, _nModes;
-	is >> _npixels >> _nModes;
+{
+	int _npixels, _nModes;
+	is.read((char*)&_npixels, sizeof(int));
+	is.read((char*)&_nModes, sizeof(int));
 	
 	__MeanTexture = cvCreateMat(1, _npixels, CV_64FC1);
 	__TextureEigenValues = cvCreateMat(1, _nModes, CV_64FC1);
 	__TextureEigenVectors = cvCreateMat(_nModes, _npixels, CV_64FC1);
 
-	is >> __MeanTexture;
-	is >> __TextureEigenValues;
-	is >> __TextureEigenVectors;
+	ReadCvMat(is, __MeanTexture);
+	ReadCvMat(is, __TextureEigenValues);
+	ReadCvMat(is, __TextureEigenVectors);
 }

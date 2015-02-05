@@ -320,15 +320,16 @@ void AAM_CAM::Write(std::ofstream& os)
 	__texture.Write(os);
 	__paw.Write(os);
 
-	os << __AppearanceEigenVectors->rows << " " << __AppearanceEigenVectors->cols
-		<< " " << __WeightsS2T << std::endl;
-	os << __MeanAppearance;
-	os << __AppearanceEigenValues;
-	os << __AppearanceEigenVectors;
-	os << __Qs;
-	os << __Qg;
-	os << __MeanS;
-	os << __MeanG;
+	os.write((char*)&__AppearanceEigenVectors->rows, sizeof(int));
+	os.write((char*)&__AppearanceEigenVectors->cols, sizeof(int));
+	os.write((char*)&__WeightsS2T, sizeof(__WeightsS2T));
+	WriteCvMat(os, __MeanAppearance);
+	WriteCvMat(os, __AppearanceEigenValues);
+	WriteCvMat(os, __AppearanceEigenVectors);
+	WriteCvMat(os, __Qs);
+	WriteCvMat(os, __Qg);
+	WriteCvMat(os, __MeanS);
+	WriteCvMat(os, __MeanG);
 }
 
 //============================================================================
@@ -339,7 +340,9 @@ void AAM_CAM::Read(std::ifstream& is)
 	__paw.Read(is);
 
 	int np, nfeatures;
-	is >> np >> nfeatures >> __WeightsS2T;
+	is.read((char*)&np, sizeof(int));
+	is.read((char*)& nfeatures, sizeof(int));
+	is.read((char*)& __WeightsS2T, sizeof(__WeightsS2T));
 	
 	__MeanAppearance = cvCreateMat(1, nfeatures, CV_64FC1);
 	__AppearanceEigenValues = cvCreateMat(1, np, CV_64FC1);
@@ -349,13 +352,13 @@ void AAM_CAM::Read(std::ifstream& is)
 	__MeanS = cvCreateMat(1, __shape.nPoints()*2, CV_64FC1);
 	__MeanG = cvCreateMat(1, __texture.nPixels(), CV_64FC1);
 	
-	is >> __MeanAppearance;
-	is >> __AppearanceEigenValues;
-	is >> __AppearanceEigenVectors;
-	is >> __Qs;
-	is >> __Qg;
-	is >> __MeanS;
-	is >> __MeanG;
+	ReadCvMat(is, __MeanAppearance);
+	ReadCvMat(is, __AppearanceEigenValues);
+	ReadCvMat(is, __AppearanceEigenVectors);
+	ReadCvMat(is, __Qs);
+	ReadCvMat(is, __Qg);
+	ReadCvMat(is, __MeanS);
+	ReadCvMat(is, __MeanG);
 
 	__Points = cvCreateMat (1, __shape.nPoints(), CV_32FC2);
 	__Storage = cvCreateMemStorage(0);

@@ -552,12 +552,11 @@ void AAM_Shape::ReadPTS(const std::string &filename)
 void AAM_Shape::Read(std::ifstream& is)
 {
 	for (int i = 0, nPoints = NPoints(); i < nPoints ; i++)
-		is >> m_vPoint[i].x >> m_vPoint[i].y;
+		is.read((char*)&m_vPoint[i], sizeof(CvPoint2D32f));
 }
 
 void AAM_Shape::Write(std::ofstream& os)
 {
 	for (int i = 0, nPoints = NPoints(); i < nPoints ; i++)
-		os << m_vPoint[i].x << " " << m_vPoint[i].y << " ";
-	os << std::endl;
+		os.write((char*)&m_vPoint[i], sizeof(CvPoint2D32f));
 }

@@ -263,27 +263,31 @@ void AAM_PDM::Clamp(CvMat* p, double s_d /* = 3.0 */)
 
 void AAM_PDM::Write(std::ofstream& os)
 {
-	os << nPoints() << " " << nModes() << std::endl;
-	os << __MeanShape << std::endl;
-	os << __ShapesEigenValues << std::endl;
-	os << __ShapesEigenVectors << std::endl;
+	int _nPoints = nPoints();
+	int _nModes = nModes();
+	os.write((char*)&_nPoints, sizeof(_nPoints));
+	os.write((char*)&_nModes, sizeof(_nModes));
+
+	WriteCvMat(os, __MeanShape);
+	WriteCvMat(os, __ShapesEigenValues);
+	WriteCvMat(os, __ShapesEigenVectors);
 	__AAMRefShape.Write(os);
-	os << std::endl;
 }
 
 void AAM_PDM::Read(std::ifstream& is)
 {
 	int _nPoints, _nModes;
-	is >> _nPoints >> _nModes;
+	is.read((char*)&_nPoints, sizeof(_nPoints));
+	is.read((char*)&_nModes, sizeof(_nModes));
 
 	__MeanShape = cvCreateMat(1, _nPoints*2, CV_64FC1);
 	__ShapesEigenValues = cvCreateMat(1, _nModes, CV_64FC1);
 	__ShapesEigenVectors = cvCreateMat(_nModes, _nPoints*2, CV_64FC1);
 	__AAMRefShape.resize(_nPoints);
 
-	is >> __MeanShape; 
-	is >> __ShapesEigenValues;
-	is >> __ShapesEigenVectors;
+	ReadCvMat(is, __MeanShape); 
+	ReadCvMat(is, __ShapesEigenValues);
+	ReadCvMat(is, __ShapesEigenVectors);
 	__AAMRefShape.Read(is);
 
 	__matshape  = cvCreateMat(1, nPoints()*2, CV_64FC1);

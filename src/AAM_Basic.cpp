@@ -355,7 +355,7 @@ void AAM_Basic::Draw(IplImage* image, const AAM_Shape& Shape, int type)
 void AAM_Basic::Write(std::ofstream& os)
 {
 	__cam.Write(os);
-	os << __G;
+	WriteCvMat(os, __G);
 }
 
 //===========================================================================
@@ -363,7 +363,7 @@ void AAM_Basic::Read(std::ifstream& is)
 {
 	__cam.Read(is);
 	 __G = cvCreateMat(__cam.nModes()+4, __cam.__texture.nPixels(), CV_64FC1);
-	 is >> __G;
+	 ReadCvMat(is, __G);
 
 	 //allocate memory for on-line fitting
 	__current_c_q = cvCreateMat(1, __cam.nModes()+4, CV_64FC1);

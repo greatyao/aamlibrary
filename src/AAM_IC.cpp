@@ -289,8 +289,8 @@ void AAM_IC::Train(const file_lists& pts_files,
 	__Storage = cvCreateMemStorage(0);
 
 	double sp = 1.0;
-	//if(__shape.GetMeanShape().GetWidth() > 48)
-	//	sp = 48/__shape.GetMeanShape().GetWidth();
+	//if(__shape.GetMeanShape().GetWidth() > 150)
+	//	sp = 150/__shape.GetMeanShape().GetWidth();
 
 	__paw.Train(__shape.GetMeanShape()*sp, __Points, __Storage);
 	printf("[%d by %d, triangles #%d, pixels #%d*3]\n",
@@ -504,7 +504,7 @@ void AAM_IC::Write(std::ofstream& os)
 	__sStar1.Write(os); __sStar2.Write(os);
 	__sStar3.Write(os); __sStar4.Write(os);
 
-	os << __G << std::endl;
+	WriteCvMat(os, __G);
 }
 
 //============================================================================
@@ -523,7 +523,7 @@ void AAM_IC::Read(std::ifstream& is)
 	__sStar3.Read(is); __sStar4.Read(is);
 
 	__G = cvCreateMat(__shape.nModes()+4, __texture.nPixels(), CV_64FC1);
-	is >> __G;
+	ReadCvMat(is, __G);
 
 	//alocate memory for on-line fitting stuff
 	__Points = cvCreateMat (1, __shape.nPoints(), CV_32FC2);
