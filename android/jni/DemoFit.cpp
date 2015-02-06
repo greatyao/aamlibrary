@@ -92,37 +92,6 @@ inline void Mat_to_shape(AAM_Shape shapes[], int nShape, Mat& mat)
 	}
 }
 
-JNIEXPORT jboolean JNICALL Java_me_greatyao_AAMFit_nativeDetectAll
-(JNIEnv * jenv, jclass, jlong imageGray, jlong faces)
-{
-	IplImage image = *(Mat*)imageGray;
-	int nFaces;
-	std::vector<AAM_Shape> detshapes;
-	
-	BEGINT();
-
-	bool flag = facedet.DetectFace(detshapes, &image);
-	if(flag == false)	{
-		ENDT("CascadeDetector CANNOT detect any face");
-		return false;
-	}
-	nFaces = detshapes.size();
-
-	LOGD("CascadeDetector found %d faces", nFaces);
-	AAM_Shape* shapes = new AAM_Shape[nFaces];
-	for(int i = 0; i < nFaces; i++)
-	{
-		model.InitShapeFromDetBox(shapes[i], detshapes[i]);
-	}
-
-	shape_to_Mat(shapes, nFaces, *((Mat*)faces));
-	delete []shapes;
-	
-	ENDT("CascadeDetector detect");
-
-	return true;
-}
-
 JNIEXPORT void JNICALL Java_me_greatyao_AAMFit_nativeInitShape(JNIEnv * jenv, jclass, jlong faces)
 {
 	Mat faces1 = *((Mat*)faces);
@@ -171,12 +140,13 @@ JNIEXPORT jboolean JNICALL Java_me_greatyao_AAMFit_nativeDetectOne
 }
 
 JNIEXPORT jboolean JNICALL Java_me_greatyao_AAMFit_nativeFitting
-(JNIEnv * jenv, jclass, jlong imageGray, jlong shapes0, jlong frame, jlong n_iteration)
+(JNIEnv * jenv, jclass, jlong imageGray, jlong shapes0, jlong n_iteration)
 {
 	IplImage image = *(Mat*)imageGray;
 	Mat shapes1 = *(Mat*)shapes0;	
 	bool flag = false;
-	if(shapes1.rows == 1)
+	assert(shapes1.rows == 1);
+	
 	{
 		AAM_Shape shape;
 	
@@ -199,7 +169,8 @@ JNIEXPORT void JNICALL Java_me_greatyao_AAMFit_nativeDrawImage
 {
 	IplImage image = *(Mat*)imageColor;
 	Mat shapes1 = *(Mat*)shapes0;	
-	if(shapes1.rows == 1)
+	assert(shapes1.rows == 1);
+	
 	{
 		AAM_Shape shape;
 	
