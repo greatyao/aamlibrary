@@ -62,7 +62,7 @@ void AAM_PDM::Train(const std::vector<AAM_Shape> &AllShapes,
 //============================================================================
 void AAM_PDM::AlignShapes(std::vector<AAM_Shape> &AllShapes)
 {
-	printf("Align all shapes...\n");
+	LOGD("Align all shapes...\n");
 
 	int nSamples = AllShapes.size();
 	int nPoints = AllShapes[0].NPoints();
@@ -98,7 +98,7 @@ void AAM_PDM::AlignShapes(std::vector<AAM_Shape> &AllShapes)
 
 		diff = (NewMeanShape-refShape).GetNorm2();
 		
-		printf("\tAlignment iteration #%i, mean shape est. diff. = %g\n", iter, diff );
+		LOGD("\tAlignment iteration #%i, mean shape est. diff. = %g\n", iter, diff );
         
 		if(diff <= diff_max) break; //converged
 	
@@ -122,7 +122,7 @@ void AAM_PDM::CalcMeanShape(AAM_Shape &MeanShape,
 //============================================================================
 void AAM_PDM::DoPCA(const CvMat* AllShapes, double percentage)
 {
-	printf("Doing PCA of shapes datas...");
+	LOGD("Doing PCA of shapes datas...");
 
 	int nSamples = AllShapes->rows;
 	int nPointsby2 = AllShapes->cols;
@@ -160,7 +160,7 @@ void AAM_PDM::DoPCA(const CvMat* AllShapes, double percentage)
 
 	cvReleaseMat(&tmpEigenVectors);
 	cvReleaseMat(&tmpEigenValues);
-	printf("Done (%d/%d)\n", nTruncated, nEigenAtMost);
+	LOGD("Done (%d/%d)\n", nTruncated, nEigenAtMost);
 }
 
 void AAM_PDM::CalcLocalShape(const CvMat* p, CvMat* s)

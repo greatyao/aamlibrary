@@ -27,7 +27,7 @@ public:
 	bool DetectFace(std::vector<AAM_Shape> &Shape, const IplImage* image);
 
 	// Load adaboost cascade file for detect face 
-	void LoadCascade(const char* cascade_name = "haarcascade_frontalface_alt2.xml");
+	bool LoadCascade(const char* cascade_name = "haarcascade_frontalface_alt2.xml");
 
 private:
 

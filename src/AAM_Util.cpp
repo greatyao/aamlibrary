@@ -311,6 +311,15 @@ void AAM_Pyramid::BuildDetectMapping(const file_lists& pts_files,
 }
 
 //============================================================================
+void AAM_Pyramid::InitShapeFromDetBox(AAM_Shape &Shape, const AAM_Shape& DetShapeBox)
+{
+	CvPoint2D32f  lt = DetShapeBox[0], RB = DetShapeBox[1];
+	Shape = __VJDetectShape;
+	Shape.ScaleXY((-lt.x+RB.x)/__referenceWidth, (-lt.y+RB.y)/__referenceWidth);
+	Shape.Translate((lt.x+RB.x)/2., (lt.y+RB.y)/2. );
+}
+
+//============================================================================
 bool AAM_Pyramid::InitShapeFromDetBox(AAM_Shape& Shape, VJfacedetect& facedetect, const IplImage* image)
 {
 	std::vector<AAM_Shape> DetShape;
@@ -348,8 +357,7 @@ void AAM_Pyramid::Build(const file_lists& pts_files,
 {
 	if(level <= 0)
 	{
-		fprintf(stderr, "ERROE(%s,%d): The pyramid level must be at least 1!\n",
-			__FILE__, __LINE__);
+		LOGW("ERROE(%s,%d): The pyramid level must be at least 1!\n", __FILE__, __LINE__);
 		exit(0);
 	}
 	__model.resize(0);
@@ -360,7 +368,7 @@ void AAM_Pyramid::Build(const file_lists& pts_files,
 		else if(type == TYPE_AAM_IC)	__model.push_back(new AAM_IC);
 		else 
 		{
-			printf("Unsupported aam type!\n");
+			LOGW("Unsupported aam type!\n");
 			exit(0);
 		}
 		__model[i]->Build(pts_files, img_files, 1.0/pow(2.0, i));
@@ -391,7 +399,7 @@ bool AAM_Pyramid::Fit(const IplImage* image,
 	// for each level in the image pyramid
 	for (int iLev = startlev; iLev >= 0; iLev--)
     {
-		printf("Level %d: ", iLev);
+		LOGD("Level %d: \n", iLev);
 
 		IplImage* fitimage = 
 			cvCreateImage(cvSize(w0/PyrScale, h0/PyrScale), image->depth, image->nChannels);
@@ -433,13 +441,12 @@ void AAM_Pyramid::Draw(IplImage* image, const AAM_Shape& Shape, int type)
 }
 
 //============================================================================
-void AAM_Pyramid::WriteModel(const std::string& filename)
+bool AAM_Pyramid::WriteModel(const std::string& filename)
 {
 	ofstream os(filename.c_str(), ios::out | ios::binary);
 	if(!os){
-		fprintf(stderr, "ERROR(%s, %d): CANNOT create model \"%s\"\n",
-			__FILE__, __LINE__, filename.c_str());
-		exit(0);
+		LOGW("ERROR(%s, %d): CANNOT create model \"%s\"\n", __FILE__, __LINE__, filename.c_str());
+		return false;
 	}
 
 	int level = __model.size();
@@ -449,25 +456,26 @@ void AAM_Pyramid::WriteModel(const std::string& filename)
 	
 	for(int i = 0; i < __model.size(); i++)
 	{
-		printf("Writing (level %d) active appearance model to file...\n", i);
+		LOGD("Writing (level %d) active appearance model to file...\n", i);
 		__model[i]->Write(os);
 	}
-	printf("Done\n");
+	LOGD("Done\n");
 
 	os.write((char*)&__referenceWidth, sizeof(__referenceWidth));
 	__VJDetectShape.Write(os);
 	
 	os.close();
+	
+	return true;
 }
 
 //============================================================================
-void AAM_Pyramid::ReadModel(const std::string& filename)
+bool AAM_Pyramid::ReadModel(const std::string& filename)
 {
 	ifstream is(filename.c_str(), ios::in | ios::binary);
 	if(!is){
-		fprintf(stderr, "ERROR(%s, %d): CANNOT load model \"%s\"\n",
-			__FILE__, __LINE__, filename.c_str());
-		exit(0);
+		LOGW("ERROR(%s, %d): CANNOT load model \"%s\"\n", __FILE__, __LINE__, filename.c_str());
+		return false;
 	}
 
 	int level, type;
@@ -479,16 +487,18 @@ void AAM_Pyramid::ReadModel(const std::string& filename)
 		if(type == TYPE_AAM_BASIC)	__model.push_back(new AAM_Basic);
 		else if(type == TYPE_AAM_IC)	__model.push_back(new AAM_IC);
 		else {
-			fprintf(stderr, "Unsupported AAM type\n");
-			exit(0);
+			LOGW("Unsupported AAM type\n");
+			return false;
 		}
-		printf("Reading (level %d) active appearance model from file...\n", i);
+		LOGI("Reading (level %d) active appearance model from file...\n", i);
 		__model[i]->Read(is);
 	}	
-	printf("Done\n");
+	LOGI("Done\n");
 
 	is.read((char*)&__referenceWidth, sizeof(__referenceWidth));
 	__VJDetectShape.resize(GetMeanShape().NPoints());
 	__VJDetectShape.Read(is);
 	is.close();
+	
+	return true;
 }

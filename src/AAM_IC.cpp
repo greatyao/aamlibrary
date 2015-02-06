@@ -258,13 +258,12 @@ void AAM_IC::Train(const file_lists& pts_files,
 {
 	if(pts_files.size() != img_files.size())
 	{
-		fprintf(stderr, "ERROE(%s, %d): #Shapes != #Images\n",
-			__FILE__, __LINE__);
+		LOGW("ERROE(%s, %d): #Shapes != #Images\n", __FILE__, __LINE__);
 		exit(0);
 	}
 
-	printf("################################################\n");
-	printf("Build Inverse Compositional Image Alignmennt Model...\n");
+	LOGD("################################################\n");
+	LOGD("Build Inverse Compositional Image Alignmennt Model...\n");
 
 	std::vector<AAM_Shape> AllShapes;
 	for(int ii = 0; ii < pts_files.size(); ii++)
@@ -281,10 +280,10 @@ void AAM_IC::Train(const file_lists& pts_files,
 	}
 
 	//building shape and texture distribution model
-	printf("Build point distribution model...\n");
+	LOGD("Build point distribution model...\n");
 	__shape.Train(AllShapes, scale, shape_percentage);
 	
-	printf("Build warp information of mean shape mesh...");
+	LOGD("Build warp information of mean shape mesh...");
 	__Points = cvCreateMat (1, __shape.nPoints(), CV_32FC2);
 	__Storage = cvCreateMemStorage(0);
 
@@ -293,14 +292,14 @@ void AAM_IC::Train(const file_lists& pts_files,
 	//	sp = 150/__shape.GetMeanShape().GetWidth();
 
 	__paw.Train(__shape.GetMeanShape()*sp, __Points, __Storage);
-	printf("[%d by %d, triangles #%d, pixels #%d*3]\n",
+	LOGD("[%d by %d, triangles #%d, pixels #%d*3]\n",
 		__paw.Width(), __paw.Height(), __paw.nTri(), __paw.nPix());
 
-	printf("Build texture distribution model...\n");
+	LOGD("Build texture distribution model...\n");
 	__texture.Train(pts_files, img_files, __paw, texture_percentage, true);
 
 	//calculate gradient of texture
-	printf("Calculating texture gradient...\n");
+	LOGD("Calculating texture gradient...\n");
 	CvMat* dTx = cvCreateMat(1, __texture.nPixels(), CV_64FC1);
 	CvMat* dTy = cvCreateMat(1, __texture.nPixels(), CV_64FC1);
 	CalcTexGrad(__texture.GetMean(), dTx, dTy);
@@ -311,18 +310,18 @@ void AAM_IC::Train(const file_lists& pts_files,
 	__paw.SaveWarpTextureToImage("Modes/dTy.jpg", dTy);
 	
 	//calculate warp Jacobian at base shape
-	printf("Calculating warp Jacobian...\n");
+	LOGD("Calculating warp Jacobian...\n");
 	CvMat* Jx = cvCreateMat(__paw.nPix(), __shape.nModes()+4, CV_64FC1);
 	CvMat* Jy = cvCreateMat(__paw.nPix(), __shape.nModes()+4, CV_64FC1);
 	CalcWarpJacobian(Jx,Jy);
 	
 	//calculate modified steepest descent image
-	printf("Calculating steepest descent images...\n");
+	LOGD("Calculating steepest descent images...\n");
 	CvMat* SD = cvCreateMat(__shape.nModes()+4, __texture.nPixels(), CV_64FC1);
 	CalcModifiedSD(SD, dTx, dTy, Jx, Jy);
 
 	//calculate inverse Hessian matrix
-	printf("Calculating Hessian inverse matrix...\n");
+	LOGD("Calculating Hessian inverse matrix...\n");
 	CvMat* H = cvCreateMat(__shape.nModes()+4, __shape.nModes()+4, CV_64FC1);
 	CalcHessian(H, SD);
 
@@ -349,7 +348,7 @@ void AAM_IC::Train(const file_lists& pts_files,
 	__update_s = cvCreateMat(1, __shape.nPoints()*2, CV_64FC1);
 	__lamda  = cvCreateMat(1, __texture.nModes(), CV_64FC1);
 
-	printf("################################################\n\n");
+	LOGD("################################################\n\n");
 }
 
 //============================================================================
@@ -413,7 +412,7 @@ bool AAM_IC::Fit(const IplImage* image, 		AAM_Shape& Shape,
 	Shape.Mat2Point(__current_s);
 		
 	t = gettime-t;
-	printf("AAM-IC Fitting: time cost=%.3f millisec, measure=(%.2f, %.2f)\n", t, err1, err2);
+	LOGI("AAM-IC Fitting: time cost=%.3f millisec, measure=(%.2f, %.2f)\n", t, err1, err2);
 	
 	cvReleaseImage(&Drawimg);
 	
@@ -488,8 +487,7 @@ void AAM_IC::Draw(IplImage* image, const AAM_Shape& Shape, int type)
 		paw.Train(Shape, __Points, __Storage, __paw.GetTri(), false);
 		AAM_Common::DrawAppearance(image, Shape, __warp_t, paw, __paw);
 	}
-	else fprintf(stderr, "ERROR(%s, %d): Unsupported drawing type\n",
-		__FILE__, __LINE__);
+	else LOGW("ERROR(%s, %d): Unsupported drawing type\n", __FILE__, __LINE__);
 }
 
 

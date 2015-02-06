@@ -27,6 +27,18 @@
 
 #define gettime cvGetTickCount() / (cvGetTickFrequency()*1000.)
 
+#ifdef ANDROID
+    #include <android/log.h>
+    #define LOG_TAG "AAMLIBRARY"
+    #define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
+    #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__))
+    #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__))
+#else
+	#define LOGD(...) fprintf(stdout,  __VA_ARGS__)
+	#define LOGI(...) fprintf(stdout,  __VA_ARGS__)
+	#define LOGW(...) fprintf(stderr,  __VA_ARGS__)
+#endif
+
 typedef std::vector<std::string> file_lists;
 
 void ReadCvMat(std::istream &is, CvMat* mat);
@@ -116,12 +128,14 @@ public:
 	// Init shape from the mapping  
 	bool InitShapeFromDetBox(AAM_Shape& Shape, VJfacedetect& facedetect, 
 		const IplImage* image);
+		
+	void InitShapeFromDetBox(AAM_Shape &Shape, const AAM_Shape& DetShapeBox);
 
 	// Write aam to file
-	void WriteModel(const std::string& filename);
+	bool WriteModel(const std::string& filename);
 
 	// Read aam from file
-	void ReadModel(const std::string& filename);
+	bool ReadModel(const std::string& filename);
 
 	// Draw the image according search result
 	void Draw(IplImage* image, const AAM_Shape& Shape, int type);

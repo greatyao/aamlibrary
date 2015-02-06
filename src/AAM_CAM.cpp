@@ -65,10 +65,10 @@ void AAM_CAM::Train(const file_lists& pts_files,
 		AllShapes.push_back(Shape);
 	}
 
-	printf("Build point distribution model...\n");
+	LOGD("Build point distribution model...\n");
 	__shape.Train(AllShapes, scale, shape_percentage);
 	
-	printf("Build warp information of mean shape mesh...");
+	LOGD("Build warp information of mean shape mesh...");
 	__Points = cvCreateMat (1, __shape.nPoints(), CV_32FC2);
 	__Storage = cvCreateMemStorage(0);
 	AAM_Shape refShape = __shape.__AAMRefShape/* * scale */;
@@ -76,14 +76,14 @@ void AAM_CAM::Train(const file_lists& pts_files,
 	//	refShape.Scale(50/refShape.GetWidth());
 	
 	__paw.Train(refShape, __Points, __Storage);
-	printf("[%d by %d, %d triangles, %d*3 pixels]\n",
+	LOGD("[%d by %d, %d triangles, %d*3 pixels]\n",
 		__paw.Width(), __paw.Height(), __paw.nTri(), __paw.nPix());
 	
-	printf("Build texture distribution model...\n");
+	LOGD("Build texture distribution model...\n");
 	__texture.Train(pts_files, img_files, __paw, texture_percentage, true);
 	__pq = cvCreateMat(1, __shape.nModes()+4, CV_64FC1);	
 
-	printf("Build combined appearance model...\n");	
+	LOGD("Build combined appearance model...\n");	
 	int nsamples = pts_files.size();
 	int npointsby2 = __shape.nPoints()*2;
 	int npixels = __texture.nPixels();
@@ -101,7 +101,7 @@ void AAM_CAM::Train(const file_lists& pts_files,
     CvScalar Sum2 = cvSum(__texture.__TextureEigenValues);
     __WeightsS2T = sqrt(Sum2.val[0] / Sum1.val[0]);
 
-	printf("Combine shape and texture parameters...\n");	
+	LOGD("Combine shape and texture parameters...\n");	
 	for(int i = 0; i < nsamples; i++)
 	{
 		//Get Shape and Texture respectively
@@ -129,7 +129,7 @@ void AAM_CAM::Train(const file_lists& pts_files,
 
 	int np = __AppearanceEigenVectors->rows;
 
-	printf("Extracting the shape and texture part of the combined eigen vectors..\n");
+	LOGD("Extracting the shape and texture part of the combined eigen vectors..\n");
 	
 	// extract the shape part of the combined eigen vectors
     CvMat Ps;
@@ -165,7 +165,7 @@ void AAM_CAM::ShapeTexture2Combined(const CvMat* Shape, const CvMat* Texture,
 //============================================================================
 void AAM_CAM::DoPCA(const CvMat* AllAppearances, double percentage)
 {
-	printf("Doing PCA of appearance datas...");
+	LOGD("Doing PCA of appearance datas...");
 
 	int nSamples = AllAppearances->rows;
 	int nfeatures = AllAppearances->cols;
@@ -203,7 +203,7 @@ void AAM_CAM::DoPCA(const CvMat* AllAppearances, double percentage)
 
 	cvReleaseMat(&tmpEigenVectors);
 	cvReleaseMat(&tmpEigenValues);
-	printf("Done (%d/%d)\n", nTruncated, nEigenAtMost);
+	LOGD("Done (%d/%d)\n", nTruncated, nEigenAtMost);
 }
 
 //============================================================================

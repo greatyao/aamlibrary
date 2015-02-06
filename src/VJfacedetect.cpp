@@ -5,6 +5,7 @@
 ****************************************************************************/
 
 #include "VJfacedetect.h"
+#include "AAM_Util.h"
 
 using namespace std;
 
@@ -23,15 +24,21 @@ VJfacedetect::~VJfacedetect()
 }
 
 //============================================================================
-void VJfacedetect::LoadCascade(const char* cascade_name /* = "haarcascade_frontalface_alt2.xml" */)
+bool VJfacedetect::LoadCascade(const char* cascade_name /* = "haarcascade_frontalface_alt2.xml" */)
 {
+	if(__storage)
+		cvReleaseMemStorage(&__storage);
+	if(__cascade)
+		cvReleaseHaarClassifierCascade(&__cascade);
+		
 	__cascade = (CvHaarClassifierCascade*)cvLoad(cascade_name, 0, 0, 0);
 	if(__cascade == 0)
 	{
-		printf("ERROR(%s, %d): Can't load cascade file!\n", __FILE__, __LINE__);
-		exit(0);
+		LOGW("ERROR(%s, %d): Can't load cascade file!\n", __FILE__, __LINE__);
+		return false;
 	}	
 	__storage = cvCreateMemStorage(0);
+	return true;
 }
 
 //============================================================================

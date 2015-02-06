@@ -69,7 +69,7 @@ void AAM_TDM::Train(const file_lists& pts_files, const file_lists& img_files,
 //============================================================================
 void AAM_TDM::DoPCA(const CvMat* AllTextures, double percentage)
 {
-	printf("Doing PCA of textures datas...");
+	LOGD("Doing PCA of textures datas...");
 
 	int nSamples = AllTextures->rows;
 	int nPixels = AllTextures->cols;
@@ -108,7 +108,7 @@ void AAM_TDM::DoPCA(const CvMat* AllTextures, double percentage)
 	cvReleaseMat(&tmpEigenVectors);
 	cvReleaseMat(&tmpEigenValues);
 
-	printf("Done (%d/%d)\n", nTruncated, nEigenAtMost);
+	LOGD("Done (%d/%d)\n", nTruncated, nEigenAtMost);
 }
 
 //============================================================================
@@ -142,7 +142,7 @@ void AAM_TDM::Clamp(CvMat* lamda, double s_d /* = 3.0 */)
 //============================================================================
 void AAM_TDM::AlignTextures(CvMat* AllTextures)
 {
-	printf("Align textures to minimize the lighting variation ...\n");
+	LOGD("Align textures to minimize the lighting variation ...\n");
 	
 	int nsamples = AllTextures->rows;
 	int npixels = AllTextures->cols;
@@ -175,7 +175,7 @@ void AAM_TDM::AlignTextures(CvMat* AllTextures)
 		
 		// test if the mean estimate has converged
 		diff = cvNorm(meanTexture, lastMeanEstimate);
-		printf("\tAlignment iteration #%i, mean texture est. diff. = %g\n", iter, diff );
+		LOGD("\tAlignment iteration #%i, mean texture est. diff. = %g\n", iter, diff );
 		if(diff <= diff_max) break;		
 	}  
 
@@ -216,7 +216,7 @@ void AAM_TDM::ZeroMeanUnitLength(CvMat* Texture)
 //============================================================================
 void AAM_TDM::SaveSeriesTemplate(const CvMat* AllTextures, const AAM_PAW& m_warp)
 {
-	printf("Saving the face template image...\n");
+	LOGD("Saving the face template image...\n");
 	AAM_Common::MkDir("registration");
 	AAM_Common::MkDir("Modes");
 	AAM_Common::MkDir("Tri");

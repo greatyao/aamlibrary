@@ -45,18 +45,17 @@ void AAM_Basic::Train(const file_lists& pts_files,
 {
 	if(pts_files.size() != img_files.size())
 	{
-		fprintf(stderr, "ERROE(%s, %d): #Shapes != #Images\n",
-			__FILE__, __LINE__);
+		LOGW("ERROE(%s, %d): #Shapes != #Images\n", __FILE__, __LINE__);
 		exit(0);
 	}
 
-	printf("################################################\n");
-	printf("Build Fixed Jocobian Active Appearance Model ...\n");
+	LOGD("################################################\n");
+	LOGD("Build Fixed Jocobian Active Appearance Model ...\n");
 
 	__cam.Train(pts_files, img_files, scale, shape_percentage, 
 		texture_percentage, appearance_percentage);
 	
-	printf("Build Jacobian Matrix...\n");
+	LOGD("Build Jacobian Matrix...\n");
 	__G = cvCreateMat(__cam.nModes()+4, __cam.__texture.nPixels(), CV_64FC1);
 	CalcJacobianMatrix(pts_files, img_files);
 
@@ -73,7 +72,7 @@ void AAM_Basic::Train(const file_lists& pts_files,
 	__t_m = cvCreateMat(1, __cam.__texture.nPixels(), CV_64FC1);
 	__delta_t = cvCreateMat(1, __cam.__texture.nPixels(), CV_64FC1);
 
-	printf("################################################\n\n");
+	LOGD("################################################\n\n");
 }
 
 //============================================================================
@@ -326,7 +325,7 @@ bool AAM_Basic::Fit(const IplImage* image, AAM_Shape& Shape,
 	AAM_Common::CheckShape(__s, image->width, image->height);
 	Shape.Mat2Point(__s);
 	t = gettime - t;
-	printf("AAM-Basic Fitting: time cost=%.3f millisec, measure=%.2f\n", t, e1);
+	LOGI("AAM-Basic Fitting: time cost=%.3f millisec, measure=%.2f\n", t, e1);
 	
 	if(e1 >= 1.75) return false;
 	return true;
@@ -347,8 +346,7 @@ void AAM_Basic::Draw(IplImage* image, const AAM_Shape& Shape, int type)
 		paw.Train(Shape, __cam.__Points, __cam.__Storage, __cam.__paw.GetTri(), false);
 		AAM_Common::DrawAppearance(image, Shape, __t_m, paw, __cam.__paw);
 	}
-	else fprintf(stderr, "ERROR(%s, %d): Unsupported drawing type\n",
-		__FILE__, __LINE__);
+	else LOGW("ERROR(%s, %d): Unsupported drawing type\n", __FILE__, __LINE__);
 }
 
 //===========================================================================
