@@ -24,7 +24,7 @@ public class AAMFit {
 	}
 	
 	//Step 3.x: init face for fitting
-	public static native void initShape(Mat faces){
+	public static void initShape(Mat faces){
 		nativeInitShape(faces.getNativeObjAddr());
 	}
 	
@@ -34,7 +34,7 @@ public class AAMFit {
 	}
 	
 	//Step 5: draw result
-	public static boolean drawImage(Mat image, Mat shape, long type){
+	public static void drawImage(Mat image, Mat shape, long type){
 		nativeDrawImage(image.getNativeObjAddr(), shape.getNativeObjAddr(), type);
 	}
 	
