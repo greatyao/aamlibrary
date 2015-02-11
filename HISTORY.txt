@@ -1,8 +1,10 @@
 HISTORY of the aamlibrary package
 ---------------------------------
-3.0, Feb 2009
+3.0, Feb 2015
 Adapted for opencv 2.x.
 Ported to linux.
+Ported to Android.
+Model file is stored in binary format.
 
 2.0, Feb 2009
 Added parymid build and fit.

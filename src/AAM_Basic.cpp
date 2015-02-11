@@ -259,6 +259,7 @@ bool AAM_Basic::Fit(const IplImage* image, AAM_Shape& Shape,
 	//do a number of iteration until convergence
 	for(int iter = 0; iter <max_iter; iter++)
 	{		
+		bool converge = false;
 		if(showprocess)
 		{
 			if(Drawimg == 0)	Drawimg = cvCloneImage(image);	
@@ -297,28 +298,25 @@ bool AAM_Basic::Fit(const IplImage* image, AAM_Shape& Shape,
 				__cam.Clamp(&c);				
 				
 				e2 = EstResidual(image, __update_c_q, __s, __t_m, __t_s, __delta_t);
-				if(e2 <= e1)	break;
+				//LOGI("%d %d %g: measure=%g %g\n", iter, k, k_values[k], e1, e2);
+				if(e2 <= e1)
+				{
+					converge = true;
+					break;
+				}
 			}
-		}
-
-		//check for convergence
-		if(iter > 0)
-		{
-			if(k == np)
+		
+			//check for convergence
+			if(converge)
 			{
 				e1 = e2;
 				cvCopy(__update_c_q, __current_c_q);
 			}
-
-			else if(fabs(e2-e1)<0.001*e1)	break;
-			else if (cvNorm(__delta_c_q)<0.001)	break;
 			else
-			{
-				cvCopy(__update_c_q, __current_c_q);
-				e1 = e2;
-			}
+				break;
 		}
 	}
+
 
 	cvReleaseImage(&Drawimg);
 	__cam.CalcShape(__s, __current_c_q);
