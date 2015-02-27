@@ -195,7 +195,7 @@ void AAM_Common::DrawAppearance(IplImage*image, const AAM_Shape& Shape,
 	const std::vector<double>& alpha = paw.__alpha;
 	const std::vector<double>& belta= paw.__belta;
 	const std::vector<double>& gamma = paw.__gamma;
-	
+
 	minx = Shape.MinX(); miny = Shape.MinY();
 	maxx = Shape.MaxX(); maxy = Shape.MaxY();
 	for(int y = miny; y < maxy; y++)
@@ -213,18 +213,26 @@ void AAM_Common::DrawAppearance(IplImage*image, const AAM_Shape& Shape,
 				v2 = tri[tri_idx][1];
 				v3 = tri[tri_idx][2];
 				
-				if(v1 < 0 || v2 < 0 || v3 < 0 || v1 >= nPoints || v2 >= nPoints || v3 >= nPoints)
-					continue;
+				//if(v1 < 0 || v2 < 0 || v3 < 0 || v1 >= nPoints || v2 >= nPoints || v3 >= nPoints)
+				//	continue;
 		
 				x2 = alpha[idx1]*refShape[v1].x + belta[idx1]*refShape[v2].x +  
 					gamma[idx1]*refShape[v3].x;
 				y2 = alpha[idx1]*refShape[v1].y + belta[idx1]*refShape[v2].y +  
 					gamma[idx1]*refShape[v3].y;
 				
-				idx2 = rect2[y2][x2];		
+				if(y2 < 0 || x2 < 0) continue;	
+				idx2 = rect2[y2][x2];	
 				idxby3 = idx2 + (idx2<<1);	/* 3*idx2 */
 				
-				if(nChannel == 3)
+				if(nChannel == 4)
+				{	
+					xby3 = x<<2;			/* 4*x ABGR */
+					pimg[xby3+2] = fastt[idxby3  ];
+					pimg[xby3+1] = fastt[idxby3+1];
+					pimg[xby3  ] = fastt[idxby3+2];
+				}
+				else if(nChannel == 3)
 				{	
 					xby3 = x + (x<<1);			/* 3*x */
 					pimg[xby3  ] = fastt[idxby3  ];
