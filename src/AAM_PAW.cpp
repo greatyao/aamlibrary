@@ -23,6 +23,41 @@ using namespace std;
 	vec.clear();												\
 }
 
+//===================================================================================
+//Borrowed from OpenCV's cvPointPolygonTest and remove some branches for optimizing
+//===================================================================================
+inline int pointPolygonTest2(CvPoint2D32f cntf[3], CvPoint pt)
+{
+	int result = 0;
+	int i, total = 3, counter = 0;
+	CvPoint2D32f v0, v = cntf[total-1];
+	
+	for( i = 0; i < total; i++ )
+	{
+		double dist;
+		v0 = v;
+		v = cntf[i];
+		if( (v0.y <= pt.y && v.y <= pt.y) ||
+			(v0.y > pt.y && v.y > pt.y) ||
+			(v0.x < pt.x && v.x < pt.x) )
+		{
+			if( pt.y == v.y && (pt.x == v.x || (pt.y == v0.y &&
+			((v0.x <= pt.x && pt.x <= v.x) || (v.x <= pt.x && pt.x <= v0.x)))) )
+			return 0;
+			continue;
+		}
+		dist = (double)(pt.y - v0.y)*(v.x - v0.x) - (double)(pt.x - v0.x)*(v.y - v0.y);
+		if( dist == 0 )
+			return 0;
+		if( v.y < v0.y )
+			dist = -dist;
+		counter += dist > 0;
+	}
+	result = counter % 2 == 0 ? -1 : 1;
+	
+	return result;
+}
+
 //============================================================================
 AAM_PAW::AAM_PAW()
 {
@@ -219,11 +254,13 @@ void AAM_PAW::CalcPixelPoint(const CvRect rect, CvMat* ConvexHull)//cost too muc
     {
 		ii = i - top;
 		__rect[ii].resize(__width);
+		pt.y = i;
 		for (int j = left; j < right; j++)
         {
 			jj = j - left;
-			pt = cvPoint2D32f(j, i);
-            __rect[ii][jj] = -1;
+			//pt = cvPoint2D32f(j, i);
+            pt.x = j;
+			__rect[ii][jj] = -1;
 
 			// firstly: the point (j, i) is located in the ConvexHull
 			if(cvPointPolygonTest(ConvexHull, pt, 0) >= 0 )
@@ -270,21 +307,172 @@ void AAM_PAW::CalcPixelPoint(const CvRect rect, CvMat* ConvexHull)//cost too muc
 }
 
 //============================================================================
+enum { XY_SHIFT = 16, XY_ONE = 1 << XY_SHIFT, DRAWING_STORAGE_BLOCK = (1<<12) - 256 };
+
+struct one_edge
+{
+    int y;
+    int xmin, xmax;
+
+    one_edge() : y(0), xmin(0), xmax(0){}
+    one_edge(int y, int xmin, int xmax) : y(y), xmin(xmin), xmax(xmax){}
+};
+
+int AAM_PAW::FastFillConvexPoly(CvPoint2D32f pts[3], void* data)
+{
+    struct
+    {
+        int idx, di;
+        int x, dx, ye;
+    }
+    edge[2];
+
+    CvPoint v[] = {cvPointFrom32f(pts[0]),cvPointFrom32f(pts[1]), cvPointFrom32f(pts[2])};
+    int npts = 3;
+    int shift = 0;
+    int delta = shift ? 1 << (shift - 1) : 0;
+    int i, y, imin = 0, left = 0, right = 1, xX1, xX2;
+    int edges = npts;
+    int xmin, xmax, ymin, ymax;
+    CvPoint p0;
+    int delta1, delta2;
+    int ycount = 0;
+    one_edge* idx = (one_edge*)data;
+    
+    delta1 = delta2 = XY_ONE >> 1;    
+
+    p0 = v[npts - 1];
+    p0.x <<= XY_SHIFT - shift;
+    p0.y <<= XY_SHIFT - shift;
+
+    xmin = xmax = v[0].x;
+    ymin = ymax = v[0].y;
+
+    for( i = 0; i < npts; i++ )
+    {
+        CvPoint p = v[i];
+        if( p.y < ymin )
+        {
+            ymin = p.y;
+            imin = i;
+        }
+
+        ymax = MAX( ymax, p.y );
+        xmax = MAX( xmax, p.x );
+        xmin = MIN( xmin, p.x );
+
+        p.x <<= XY_SHIFT - shift;
+        p.y <<= XY_SHIFT - shift;
+
+        CvPoint pt0, pt1;
+        pt0.x = p0.x >> XY_SHIFT;
+        pt0.y = p0.y >> XY_SHIFT;
+        pt1.x = p.x >> XY_SHIFT;
+        pt1.y = p.y >> XY_SHIFT;
+        
+		p0 = p;
+    }
+
+    xmin = (xmin + delta) >> shift;
+    xmax = (xmax + delta) >> shift;
+    ymin = (ymin + delta) >> shift;
+    ymax = (ymax + delta) >> shift;
+
+    edge[0].idx = edge[1].idx = imin;
+
+    edge[0].ye = edge[1].ye = y = ymin;
+    edge[0].di = 1;
+    edge[1].di = npts - 1;
+
+    do
+    {
+        if(y < ymax || y == ymin )
+        {
+            for( i = 0; i < 2; i++ )
+            {
+                if( y >= edge[i].ye )
+                {
+                    int idx = edge[i].idx, di = edge[i].di;
+                    int xs = 0, xe, ye, ty = 0;
+
+                    for(;;)
+                    {
+                        ty = (v[idx].y + delta) >> shift;
+                        if( ty > y || edges == 0 )
+                            break;
+                        xs = v[idx].x;
+                        idx += di;
+                        idx -= ((idx < npts) - 1) & npts;   /* idx -= idx >= npts ? npts : 0 */
+                        edges--;
+                    }
+
+                    ye = ty;
+                    xs <<= XY_SHIFT - shift;
+                    xe = v[idx].x << (XY_SHIFT - shift);
+
+                    /* no more edges */
+                    if( y >= ye )
+                        return ycount;
+
+                    edge[i].ye = ye;
+                    edge[i].dx = ((xe - xs)*2 + (ye - y)) / (2 * (ye - y));
+                    edge[i].x = xs;
+                    edge[i].idx = idx;
+                }
+            }
+        }
+
+        if( edge[left].x > edge[right].x )
+        {
+            left ^= 1;
+            right ^= 1;
+        }
+
+        xX1 = edge[left].x;
+        xX2 = edge[right].x;
+
+        if( y >= 0 )
+        {
+            int xx1 = (xX1 + delta1) >> XY_SHIFT;
+            int xx2 = (xX2 + delta2) >> XY_SHIFT;
+
+            if( xx2 >= 0/* && xx1 < size.width*/ )
+            {
+                if( xx1 < 0 )
+                    xx1 = 0;
+                idx[ycount].y = y;
+                idx[ycount].xmin = xx1;
+                idx[ycount].xmax = xx2;
+                ycount++;
+            }
+        }
+
+        xX1 += edge[left].dx;
+        xX2 += edge[right].dx;
+
+        edge[left].x = xX1;
+        edge[right].x = xX2;
+    }
+    while( ++y <= ymax );
+    return ycount;
+}
+
 void AAM_PAW::FastCalcPixelPoint(const CvRect rect)
 {
 	CvPoint2D32f point[3];
     CvMat oneTri = cvMat(1, 3, CV_32FC2, point);
 	double alpha, belta, gamma;
-	CvPoint2D32f pt;
+	CvPoint pt;
 	int ind1, ind2, ind3;
 	int ll = 0;
-	double x, y, x1, y1, x2, y2, x3, y3, c;
+	int x, y;
+	double x1, y1, x2, y2, x3, y3, c;
+	struct one_edge* idx = NULL;
 	
 	__xmin = rect.x;			__ymin = rect.y;
-	__width = rect.width;		__height = rect.height;
+	__width = rect.width+1;		__height = rect.height+1;
 	int left = rect.x, top = rect.y;
-	double aa, bb, cc, dd;
-	
+	int aa, bb, cc, dd;
 	__rect.resize(__height);
 	for(int i = 0; i < __height; i++) 
 	{
@@ -293,7 +481,7 @@ void AAM_PAW::FastCalcPixelPoint(const CvRect rect)
 			__rect[i][j] = -1;
 	}
 	
-	for(int k = 0; k < __nTriangles; k++)
+	for(int k = 0; k < __nTriangles; ++k)
 	{
 		ind1 = __tri[k][0];
 		ind2 = __tri[k][1];
@@ -308,24 +496,52 @@ void AAM_PAW::FastCalcPixelPoint(const CvRect rect)
 		x3 = point[2].x; y3 = point[2].y;
 		c = 1.0/(+x2*y3-x2*y1-x1*y3-x3*y2+x3*y1+x1*y2);
 
-		aa = MIN(x1, MIN(x2, x3)); //left x
+#if 1
+		if(idx == NULL) idx = new one_edge[__height];
+		int ycount = FastFillConvexPoly(point, idx);
+		if(ycount == 0) continue;
+		cc = idx[0].y;
+		dd = ycount == 1 ? cc : idx[ycount-1].y;
+		for(y=cc; y<=dd; ++y)
+		{
+			int Y = y-cc;
+			for(x=idx[Y].xmin; x<=idx[Y].xmax; ++x)
+			{
+				__rect[y-top][x-left] = ll++;
+				__pixTri.push_back(k);
+
+				alpha = (y*(x3-x2)+x2*y3-x3*y2+x*(y2-y3))*c;
+				belta = (y*(x1-x3)+x3*y1-x1*y3+(y3-y1)*x)*c;
+				gamma = 1 - alpha - belta; 
+				
+				__alpha.push_back(alpha);
+				__belta.push_back(belta);
+				__gamma.push_back(gamma);
+
+			}
+		}
+#else
+		aa = int(MIN(x1, MIN(x2, x3))+0.5); //left x
 		bb = MAX(x1, MAX(x2, x3)); //right x
-		cc = MIN(y1, MIN(y2, y3)); //top y
+		cc = int(MIN(y1, MIN(y2, y3))+0.5); //top y
 		dd = MAX(y1, MAX(y2, y3)); //bot y
 
-		for(y=ceil(cc); y<=dd;y +=1)
+		for(y=cc; y<=dd; ++y)
 		{
-			for(x=ceil(aa); x<=bb;x+=1)
+			pt.y = y;
+			for(x=aa; x<=bb; ++x)
 			{
-				pt = cvPoint2D32f(x, y);
+				pt.x = x;
 				//the point is located in the k-th triangle
-				if(cvPointPolygonTest(&oneTri, pt, 0) >= 0)
+				if(pointPolygonTest2(point, pt) >= 0)
 				{
 					__rect[y-top][x-left] = ll++;
 					__pixTri.push_back(k);
 
-					alpha = (y*x3-y3*x+x*y2-x2*y+x2*y3-x3*y2)*c;
-					belta = (-y*x3+x1*y+x3*y1+y3*x-x1*y3-x*y1)*c;
+					//alpha = (y*x3-y3*x+x*y2-x2*y+x2*y3-x3*y2)*c;
+					//belta = (-y*x3+x1*y+x3*y1+y3*x-x1*y3-x*y1)*c;
+					alpha = (y*(x3-x2)+x2*y3-x3*y2+x*(y2-y3))*c;
+					belta = (y*(x1-x3)+x3*y1-x1*y3+(y3-y1)*x)*c;
 					gamma = 1 - alpha - belta; 
 					
 					__alpha.push_back(alpha);
@@ -335,7 +551,9 @@ void AAM_PAW::FastCalcPixelPoint(const CvRect rect)
 
 			}
 		}
+#endif
 	}
+	delete []idx;
 }
 
 //============================================================================
@@ -433,6 +651,32 @@ void AAM_PAW::CalcWarpTexture(const CvMat* s, const IplImage* image, CvMat* t)co
 	char* imgdata = image->imageData;
 	int step = image->widthStep;
 	int nchannel = image->nChannels;
+	if(nchannel == 4)
+	{
+		for(int i = 0, k = 0; i < __nPixels; i++, k+=3)
+		{
+			tri_idx = __pixTri[i];
+			v1 = __tri[tri_idx][0];
+			v2 = __tri[tri_idx][1];
+			v3 = __tri[tri_idx][2];
+
+			x = __alpha[i]*ss[v1<<1] + __belta[i]*ss[v2<<1] + 
+				__gamma[i]*ss[v3<<1];
+			y = __alpha[i]*ss[1+(v1<<1)] + __belta[i]*ss[1+(v2<<1)] + 
+				__gamma[i]*ss[1+(v3<<1)];
+
+			X = cvFloor(x);		Y = cvFloor(y);
+			ixR1 = X<<2;	ixG1= ixR1+1;	ixB1 = ixR1+2;
+			p1 = (byte*)(imgdata + step*Y);
+			fastt[k	] = p1[ixB1];
+			fastt[k+1] = p1[ixG1];
+			fastt[k+2] = p1[ixR1];
+		}
+
+		return;
+	}
+
+
 	int off_g = (nchannel == 3) ? 1 : 0;
 	int off_r = (nchannel == 3) ? 2 : 0;
 	

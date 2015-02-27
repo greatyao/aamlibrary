@@ -101,6 +101,8 @@ private:
 	// Find triangles containing each landmark.
 	void FindVTri();
 
+	int FastFillConvexPoly(CvPoint2D32f pts[3], void* data);
+
 private:
 	int __n;						/*number of landmarks*/
 	int __nPixels;					/*number of pixels*/
