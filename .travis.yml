@@ -1,0 +1,16 @@
+sudo: required
+dist: trusty
+language: cpp
+cache: apt
+
+branches:
+  only:
+    - 'master'
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install cmake gcc-4.8 libopencv-dev
+
+script:
+  - cmake ./
+  - make
