@@ -1,5 +1,5 @@
 
-# Avtive Appearance Model C++ Library (AAMLibrary)
+# Active Appearance Model C++ Library (AAMLibrary)
 
 
 ## Dependencies
