@@ -19,7 +19,7 @@
 ## Quick Tutorial
 
 ### Prepare: 
-- For model training, you should have several pairs of images and annotations. ASMLibrary supports pts and asf format.
+- For model training, you should have several pairs of images and annotations. AAMLibrary supports pts and asf format.
 - Download the imm dataset from AAM-API's homepage [link: IMM Dataset](http://www2.imm.dtu.dk/pubdb/views/publication_details.php?id=922)
 - Download FRANCK dataset annotated by Cootes [link: Cootes's Dataset](http://personalpages.manchester.ac.uk/staff/timothy.f.cootes/tfc_software.html)
 - Download helen dataset from this [link: Helen Dataset](http://ibug.doc.ic.ac.uk/resources/facial-point-annotations/)
@@ -28,10 +28,10 @@
 
 ### Training 
 
-- Train the Cootes's basic active appearance models using 3 parymid levels:
+- Train the Cootes's basic active appearance models using 3 parymid levels
    > ./build -t 0 -p 3 ../helen jpg pts haarcascade_frontalface_alt2.xml basic.amf
 
-2. Train the Matthews and S. Baker's Inverse Compositional models using 2 parymid levels:
+- Train the Matthews and S. Baker's Inverse Compositional models using 2 parymid levels
    > ./build -t 1 -p 2 ../helen jpg pts haarcascade_frontalface_alt2.xml ic.amf
 
  
