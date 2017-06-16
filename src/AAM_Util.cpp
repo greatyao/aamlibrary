@@ -297,6 +297,11 @@ void AAM_Pyramid::BuildDetectMapping(const file_lists& pts_files,
 		printf("%i of %i\r", i, pts_files.size());
 		
 		IplImage* image = cvLoadImage(img_files[i].c_str(), -1);
+		if(image->depth != 8) {
+			printf("Only 8-bit images are supported, but %s is %d-bit\n", 
+					img_files[i].c_str(), image->depth);
+			continue;
+		}
 		
 		std::vector<AAM_Shape> DetShape;
 		bool flag = FaceDetect.DetectFace(DetShape, image);
